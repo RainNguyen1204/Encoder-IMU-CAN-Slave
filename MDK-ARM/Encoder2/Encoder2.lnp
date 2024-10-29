@@ -1,0 +1,28 @@
+--cpu Cortex-M3
+"encoder2\startup_stm32f103xb.o"
+"encoder2\main.o"
+"encoder2\stm32f1xx_it.o"
+"encoder2\stm32f1xx_hal_msp.o"
+"encoder2\stm32f1xx_hal_gpio_ex.o"
+"encoder2\stm32f1xx_hal_can.o"
+"encoder2\stm32f1xx_hal.o"
+"encoder2\stm32f1xx_hal_rcc.o"
+"encoder2\stm32f1xx_hal_rcc_ex.o"
+"encoder2\stm32f1xx_hal_gpio.o"
+"encoder2\stm32f1xx_hal_dma.o"
+"encoder2\stm32f1xx_hal_cortex.o"
+"encoder2\stm32f1xx_hal_pwr.o"
+"encoder2\stm32f1xx_hal_flash.o"
+"encoder2\stm32f1xx_hal_flash_ex.o"
+"encoder2\stm32f1xx_hal_exti.o"
+"encoder2\stm32f1xx_hal_tim.o"
+"encoder2\stm32f1xx_hal_tim_ex.o"
+"encoder2\stm32f1xx_hal_uart.o"
+"encoder2\system_stm32f1xx.o"
+"encoder2\encoderposition.o"
+"encoder2\wit.o"
+"encoder2\canbus.o"
+--strict --scatter "Encoder2\Encoder2.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Encoder2.map" -o Encoder2\Encoder2.axf
