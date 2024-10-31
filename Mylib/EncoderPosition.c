@@ -1,19 +1,20 @@
 
 #include "EncoderPosition.h"
-#include "stdlib.h"
 
-//Cap nhat các giá tri cho encoder qua timer
+uint8_t offset_flag = 0;
+
+
+//Cap nhat cÃ¡c giÃ¡ tri cho encoder qua timer
 void Encoder_Update_Data(Encoder_HandleTypeDef *encoder, TIM_HandleTypeDef *htim, uint16_t resolution)
 {
-	//Gan các giá tri cua timer vào encoder
+	//Gan cÃ¡c giÃ¡ tri cua timer vÃ o encoder
 	encoder->current_direction = (htim->Instance->CR1 & TIM_CR1_DIR) >> 4;
 	encoder->current_CNT_value = htim->Instance->CNT;
 	encoder->resolution = resolution;
 }
 
-void Encoder_Round_Counter(Encoder_HandleTypeDef *encoder) //Ğêm sô vong quay cua encoder qua xung Z
+void Encoder_Round_Counter(Encoder_HandleTypeDef *encoder) //ÃÃªm sÃ´ vong quay cua encoder qua xung Z
 {
-	static uint8_t flag = 0;
 	if (encoder->current_direction != 0)
 	{
 		encoder->round_counter--;
@@ -22,32 +23,28 @@ void Encoder_Round_Counter(Encoder_HandleTypeDef *encoder) //Ğêm sô vong quay cu
 	{
 		encoder->round_counter++;
 	}	
-	if(flag) //Bat dâu skip kê tu vòng thu 1 || -1
+	//skip 1 xung Z nÃªu encoder quay nguoc chiÃªu dang quay
+	if(encoder->last_direction != encoder->current_direction)
 	{
-		//skip 1 xung Z nêu encoder quay nguoc chiêu dang quay
-		if(encoder->last_direction != encoder->current_direction)
+		if (encoder->current_direction != 0)
 		{
-			if (encoder->current_direction != 0)
-			{
-				encoder->round_counter++;
-			}
-			else
-			{
-				encoder->round_counter--;
-			}
+			encoder->round_counter++;
+		}
+		else
+		{
+			encoder->round_counter--;
 		}
 	}
 	encoder->last_direction = encoder->current_direction;
-	flag = 1;
 }	
 
-uint8_t Encoder_Offset_Detect(Encoder_HandleTypeDef *encoder) //Tim dô lech so voi vi tri dat robot
+uint8_t Encoder_Offset_Detect(Encoder_HandleTypeDef *encoder) //Tim dÃ´ lech so voi vi tri dat robot
 {
-	static uint8_t flag = 0;
-	if (!flag)
+	if (!offset_flag)
 	{
 		encoder->offset = encoder->pulse; //Luu so xung lech so voi vi tri dat robot
-		flag++;
+		encoder->last_direction = encoder->current_direction;
+		offset_flag++;
 		return 0;
 	}
 	else
@@ -57,7 +54,7 @@ uint8_t Encoder_Offset_Detect(Encoder_HandleTypeDef *encoder) //Tim dô lech so v
 }
 
 
-void Encoder_Pulse_Counter(Encoder_HandleTypeDef *encoder)	//Ğêm sô xung
+void Encoder_Pulse_Counter(Encoder_HandleTypeDef *encoder)	//ÃÃªm sÃ´ xung
 {
 	if (encoder->last_CNT_value > encoder->current_CNT_value)
 	{
@@ -69,7 +66,7 @@ void Encoder_Pulse_Counter(Encoder_HandleTypeDef *encoder)	//Ğêm sô xung
 				encoder->last_CNT_value = encoder->current_CNT_value;
 			}
 		}
-		else	//CNT dem lên
+		else	//CNT dem lÃªn
 		{
 			if ((encoder->last_CNT_value - encoder->current_CNT_value) >= 4)
 			{
@@ -88,7 +85,7 @@ void Encoder_Pulse_Counter(Encoder_HandleTypeDef *encoder)	//Ğêm sô xung
 				encoder->last_CNT_value = encoder->current_CNT_value;
 			}
 		}
-		else	//CNT dem lên
+		else	//CNT dem lÃªn
 		{
 			if ((encoder->current_CNT_value - encoder->last_CNT_value) >= 4)
 			{
@@ -102,13 +99,13 @@ void Encoder_Pulse_Counter(Encoder_HandleTypeDef *encoder)	//Ğêm sô xung
 
 
 
-void Encoder_Pulse_Calibration(Encoder_HandleTypeDef *encoder) //Hiêu chinh sai sô sô xung 
+void Encoder_Pulse_Calibration(Encoder_HandleTypeDef *encoder) //HiÃªu chinh sai sÃ´ sÃ´ xung 
 {
-	Encoder_Round_Counter(encoder); //Ğêm so vong qua xung Z
+	Encoder_Round_Counter(encoder); //ÃÃªm so vong qua xung Z
 	encoder->pulse = encoder->round_counter * 1000 + encoder->offset;
 }
 
-void Encoder_Position(Encoder_HandleTypeDef *encoder, TIM_HandleTypeDef *htim, uint16_t resolution, float wheel_diameater) //Tính vi trí
+void Encoder_Position(Encoder_HandleTypeDef *encoder, TIM_HandleTypeDef *htim, uint16_t resolution, float wheel_diameater) //TÃ­nh vi trÃ­
 {
 	Encoder_Update_Data(encoder, htim, resolution);
 	Encoder_Pulse_Counter(encoder);
@@ -122,6 +119,7 @@ void Encoder_Reset(Encoder_HandleTypeDef *encoder, TIM_HandleTypeDef *htim)//Res
 	encoder->current_CNT_value = encoder->current_direction = encoder->last_CNT_value
 	= encoder->last_direction = encoder->offset = encoder->position = encoder->pulse
 	= encoder->resolution = encoder->round_counter = 0;
+	offset_flag = 0;
 }	
 
 
